@@ -1,0 +1,7 @@
+torch==2.4.1
+numpy==2.5.3
+scikit-learn==1.9.1
+
+# --- required only by prep/prep_mosei.py (data preparation) ---
+# transformers
+# h5py

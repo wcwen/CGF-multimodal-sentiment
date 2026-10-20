@@ -1,0 +1,39 @@
+{
+ "pipeline": "prep_mosei.py (workspace root), stages av/bert/pack",
+ "rule": "all labeled segments of SDK standard-fold videos; no missing-modality filtering; zero-filled",
+ "splits": {
+  "train": {
+   "n": 16327,
+   "id_sha256": "124bf9579b03e7f504a7d646cd151535c24f4aff25bf64c7e72a867178bf67b2",
+   "ids_head5": [
+    "hh04W3xXa5s$_0",
+    "hh04W3xXa5s$_1",
+    "hh04W3xXa5s$_2",
+    "GdFP_p4eQX0$_0",
+    "GdFP_p4eQX0$_1"
+   ]
+  },
+  "valid": {
+   "n": 1871,
+   "id_sha256": "483206f6d5d01f318b5f006625bae19dfabd7e94da55e2c0addc6ba0b59dd6a0",
+   "ids_head5": [
+    "188343$_0",
+    "188343$_1",
+    "188343$_2",
+    "188343$_3",
+    "188343$_4"
+   ]
+  },
+  "test": {
+   "n": 4662,
+   "id_sha256": "2c2ee812a29c08c383854c9c9423f297acedc22a2016f26dbc754a332df07e0f",
+   "ids_head5": [
+    "286943$_0",
+    "286943$_1",
+    "286943$_2",
+    "286943$_3",
+    "286943$_4"
+   ]
+  }
+ }
+}

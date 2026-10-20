@@ -1,0 +1,17 @@
+# ---- datasets (download/build separately, see README) ----
+sucai/*.pkl
+sucai/*/*.pkl
+
+# MOSEI preparation intermediates
+mosei_raw/
+mosei_work/
+
+# ---- training artifacts ----
+src/saved_models/
+src/tmp_ckpt/
+**/__pycache__/
+*.pyc
+
+# ---- analysis outputs (regenerable) ----
+analysis/mosi_test_records.json
+analysis/risk_coverage_results.json
