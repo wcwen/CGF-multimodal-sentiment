@@ -17,7 +17,7 @@ os.environ.setdefault('NO_PROXY', 'localhost,127.0.0.1')
 import numpy as np
 import h5py
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root
+ROOT = os.path.dirname(os.path.abspath(__file__))
 RAW = os.path.join(ROOT, 'mosei_raw')
 WORK = os.path.join(ROOT, 'mosei_work')
 os.makedirs(WORK, exist_ok=True)
@@ -161,7 +161,38 @@ def stage_bert():
         print(split, 'BERT done', flush=True)
 
 
+def _stats(arr):
+    """per-dim 训练集统计量，排除：哨兵垃圾值(|x|>1e30)、整行全零(补齐/无帧填充)。"""
+    row_zero = (np.abs(arr).max(axis=-1) < 1e-12)          # (N,50) 结构零行
+    bad = (~np.isfinite(arr)) | (np.abs(arr) > 1e30) | row_zero[..., None]
+    means = np.zeros(arr.shape[-1]); stds = np.zeros(arr.shape[-1])
+    for d in range(arr.shape[-1]):
+        v = arr[..., d][~bad[..., d]]
+        means[d] = v.mean(); stds[d] = max(v.std(), 1e-8)
+    return means, stds, row_zero
+
+
+def _clean_norm(arr, means, stds, row_zero_tr):
+    """哨兵/非有限值 -> 训练集per-dim均值(原始尺度)，再per-dim z归一化；
+    结构零行(补齐步、无重叠帧区间)在归一化后保持为零。"""
+    out = arr.astype(np.float32)
+    bad = (~np.isfinite(out)) | (np.abs(out) > 1e30)
+    for d in range(out.shape[-1]):
+        m = bad[..., d]
+        if m.any():
+            out[..., d][m] = means[d]
+    out = (out - means) / stds
+    out[row_zero_tr] = 0.0
+    return out.astype(np.float32)
+
+
 def stage_pack():
+    # 先用训练集算统计量（音频含哨兵，视觉无哨兵但同样排除结构零行）
+    ztr = np.load(os.path.join(WORK, 'av_train.npz'), allow_pickle=True)
+    a_mean, a_std, a_zero = _stats(ztr['audio'])
+    v_mean, v_std, v_zero = _stats(ztr['vision'])
+    print('train audio per-dim mean/std 已计算; sentinel行数:', int(a_zero.shape[0] and (np.abs(ztr['audio'])>1e30).any(-1).sum()))
+
     out = {}
     for split in SPLITS:
         z = np.load(os.path.join(WORK, f'av_{split}.npz'), allow_pickle=True)
@@ -170,10 +201,15 @@ def stage_pack():
         labels = z['labels'].astype(np.float64)
         cls = np.where(labels > 0, 2, np.where(labels < 0, 0, 1)).astype(np.float64)
         ann = np.where(labels > 0, 'Positive', np.where(labels < 0, 'Negative', 'Neutral'))
+        # 结构零行按各 split 自身判定（test/valid 补齐长度分布不同）
+        _, _, a_zero_sp = _stats(z['audio'])
+        _, _, v_zero_sp = _stats(z['vision'])
+        A = _clean_norm(z['audio'], a_mean, a_std, a_zero_sp)
+        V = _clean_norm(z['vision'], v_mean, v_std, v_zero_sp)
         out[split] = {
             'raw_text': list(z['raws']),
-            'audio': z['audio'],
-            'vision': z['vision'],
+            'audio': A,
+            'vision': V,
             'id': list(z['ids']),
             'text': T,
             'text_bert': TB,
@@ -181,7 +217,8 @@ def stage_pack():
             'classification_labels': cls,
             'regression_labels': labels,
         }
-        print(split, 'n=', len(labels), 'text', T.shape, 'audio', z['audio'].shape)
+        print(split, 'n=', len(labels), 'text', T.shape, 'audio', A.shape,
+              'audio范围[%.2f,%.2f]' % (A.min(), A.max()), 'vision范围[%.2f,%.2f]' % (V.min(), V.max()))
     dst = os.path.join(ROOT, 'sucai', 'CMU-MOSEI', 'mosei_aligned_50.pkl')
     with open(dst, 'wb') as f:
         pickle.dump(out, f, protocol=4)

@@ -67,7 +67,7 @@ Macro-F1（4 种子描述性，不推断）：
 | CMU-MOSI | 高 | 83.3 | [78.9, 87.2] |
 | CMU-MOSI | Pearson r（pooled） | 0.302 | [0.251, 0.351] |
 
-| CMU-MOSEI | 低 | 51.0 | [49.5, 52.6] |
-| CMU-MOSEI | 中 | 59.0 | [57.4, 60.7] |
-| CMU-MOSEI | 高 | 74.2 | [72.3, 75.9] |
-| CMU-MOSEI | Pearson r（pooled） | 0.205 | [0.187, 0.223] |
+| CMU-MOSEI | 低 | 52.2 | [50.6, 53.7] |
+| CMU-MOSEI | 中 | 60.5 | [58.9, 62.1] |
+| CMU-MOSEI | 高 | 74.0 | [72.2, 75.7] |
+| CMU-MOSEI | Pearson r（pooled） | 0.196 | [0.177, 0.214] |

@@ -180,7 +180,8 @@ def train_one_run(model, train_loader, valid_loader, is_cgf, lr=2e-4, epochs=40,
         best_state = ck['best_state']
         patience_counter = ck['counter']
         if 'torch_rng' in ck:
-            torch.set_rng_state(ck['torch_rng'])
+            _r = ck['torch_rng']
+            torch.set_rng_state(_r.cpu() if torch.is_tensor(_r) else _r)
         if 'numpy_rng' in ck:
             np.random.set_state(ck['numpy_rng'])
         if 'py_rng' in ck:
